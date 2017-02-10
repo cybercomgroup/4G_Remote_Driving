@@ -38,7 +38,7 @@ public class Client extends AppCompatActivity {
             public void run() {
                 try {
                     Log.d(TAG, "Connecting...");
-                    clientSocket = new Socket("129.16.229.123", 3000);
+                    clientSocket = new Socket("129.16.229.123", 3006);
                     //clientSocket.setSendBufferSize(1);
                     Log.d(TAG, "Connected to server... proceeding...");
 
@@ -53,7 +53,7 @@ public class Client extends AppCompatActivity {
         });
         comThread.start();
 
-        Toast.makeText(this, "Ip: "+ ip + ", Port: " + port, Toast.LENGTH_SHORT).show();
+        //Toast.makeText(this, "Ip: "+ ip + ", Port: " + port, Toast.LENGTH_SHORT).show();
         final WebView webView = (WebView)findViewById(R.id.stream);
         int default_zoom_level=100;
         webView.setInitialScale(default_zoom_level);
@@ -71,29 +71,24 @@ public class Client extends AppCompatActivity {
     }
 
     public void send(final View view){
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    String clientMsgL = "1";
-                    String clientMsgR = "2";
-                    switch (view.getId()) {
-                        case R.id.left:
-                            Log.d(TAG, "Sending data: " + clientMsgL + " to server...");
-                            out.println(clientMsgL);
-                            out.flush();
-                            break;
-                        case R.id.right:
-                            Log.d(TAG, "Sending data: " + clientMsgR + " to server...");
-                            out.println(clientMsgR);
-                            out.flush();
-                            break;
-                    }
-                }
-                catch(Exception e) {
-                    e.printStackTrace();
-                }
+        try {
+            String clientMsgL = "1";
+            String clientMsgR = "2";
+            switch (view.getId()) {
+                case R.id.left:
+                    Log.d(TAG, "Sending data: " + clientMsgL + " to server...");
+                    out.print(clientMsgL);
+                    out.flush();
+                    break;
+                case R.id.right:
+                    Log.d(TAG, "Sending data: " + clientMsgR + " to server...");
+                    out.print(clientMsgR);
+                    out.flush();
+                    break;
             }
-        }).start();
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+        }
     }
 }
