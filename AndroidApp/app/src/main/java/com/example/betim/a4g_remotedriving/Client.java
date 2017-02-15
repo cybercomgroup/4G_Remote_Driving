@@ -8,12 +8,15 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.webkit.WebView;
 import android.util.Log;
+import android.widget.TextView;
 import android.widget.Toast;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+
+import io.github.controlwear.virtual.joystick.android.JoystickView;
 
 public class Client extends AppCompatActivity {
     //Variables:
@@ -38,7 +41,7 @@ public class Client extends AppCompatActivity {
             public void run() {
                 try {
                     Log.d(TAG, "Connecting...");
-                    clientSocket = new Socket("129.16.229.123", 3006);
+                    clientSocket = new Socket("95.80.12.203", 3000);
                     //clientSocket.setSendBufferSize(1);
                     Log.d(TAG, "Connected to server... proceeding...");
 
@@ -52,7 +55,7 @@ public class Client extends AppCompatActivity {
             }
         });
         comThread.start();
-
+        
         //Toast.makeText(this, "Ip: "+ ip + ", Port: " + port, Toast.LENGTH_SHORT).show();
         final WebView webView = (WebView)findViewById(R.id.stream);
         int default_zoom_level=100;
@@ -64,12 +67,21 @@ public class Client extends AppCompatActivity {
                 int width = webView.getWidth();
                 int height = webView.getHeight();
                 Log.d(TAG, "Webview initialized, width: " + width + "height: " + height);
-                webView.loadUrl("http://129.16.229.123:8000/stream" + "?width="+width+"&height="+height);
+                webView.loadUrl("http://95.80.12.203:3005/stream" + "?width="+width+"&height="+height);
                 Log.d(TAG, "Webview loaded successfully... proceeding...");
             }
         });
-    }
 
+        JoystickView joystick = (JoystickView) findViewById(R.id.joystickView);
+        joystick.setOnMoveListener(new JoystickView.OnMoveListener() {
+            @Override
+            public void onMove(int angle, int strength) {
+                TextView textView = (TextView) findViewById(R.id.textView);
+                textView.setText("Angle: "+angle+" , Strength: "+strength+"   ");
+            }
+        });
+    }
+/*
     public void send(final View view){
         try {
             String clientMsgL = "1";
@@ -91,4 +103,5 @@ public class Client extends AppCompatActivity {
             e.printStackTrace();
         }
     }
+    */
 }
