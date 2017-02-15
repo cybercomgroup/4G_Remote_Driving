@@ -49,4 +49,20 @@
         android:layout_alignParentRight="true"
         />
 
+    <Button
+        android:id="@+id/bil"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Bil"
+        android:textSize="36sp"
+        android:layout_centerInParent="true"
+        />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Flytta bil UP"
+        android:onClick="moveUp"
+        />
+
 </RelativeLayout>

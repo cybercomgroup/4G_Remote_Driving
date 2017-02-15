@@ -9,6 +9,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.webkit.WebView;
 import android.util.Log;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 import java.io.BufferedReader;
@@ -83,15 +84,31 @@ public class Client extends AppCompatActivity {
                 if(angle > 70 && angle < 110 && strength > 65) {
                     textView.setTextColor(Color.GREEN);
                     textView.setText("UP     ");
+
+                    Button bil = (Button) findViewById(R.id.bil);
+                    float y = bil.getY();
+                    bil.setY(y-10);
                 } else if(angle > 160 && angle < 200 && strength > 65){
                     textView.setTextColor(Color.GREEN);
                     textView.setText("LEFT     ");
+
+                    Button bil = (Button) findViewById(R.id.bil);
+                    float x = bil.getX();
+                    bil.setX(x-10);
                 } else if(angle > 250 && angle < 290 && strength > 65){
                     textView.setTextColor(Color.GREEN);
                     textView.setText("DOWN     ");
+
+                    Button bil = (Button) findViewById(R.id.bil);
+                    float y = bil.getY();
+                    bil.setY(y+10);
                 } else if((angle > 340 && angle < 360) || (angle < 20 && angle >= 0) && strength > 65){
                     textView.setTextColor(Color.GREEN);
                     textView.setText("RIGHT     ");
+
+                    Button bil = (Button) findViewById(R.id.bil);
+                    float x = bil.getX();
+                    bil.setX(x+10);
                 }
                 else{
                     textView.setTextColor(Color.BLACK);
@@ -123,4 +140,12 @@ public class Client extends AppCompatActivity {
         }
     }
     */
+
+    public void moveUp(View view){
+        Button bil = (Button) findViewById(R.id.bil);
+        float y = bil.getY();
+        float x = bil.getX();
+
+        bil.setY(y-10);
+    }
 }
