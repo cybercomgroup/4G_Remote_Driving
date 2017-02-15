@@ -1,6 +1,7 @@
 package com.example.betim.a4g_remotedriving;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -55,8 +56,9 @@ public class Client extends AppCompatActivity {
             }
         });
         comThread.start();
-        
+
         //Toast.makeText(this, "Ip: "+ ip + ", Port: " + port, Toast.LENGTH_SHORT).show();
+        /*
         final WebView webView = (WebView)findViewById(R.id.stream);
         int default_zoom_level=100;
         webView.setInitialScale(default_zoom_level);
@@ -71,13 +73,30 @@ public class Client extends AppCompatActivity {
                 Log.d(TAG, "Webview loaded successfully... proceeding...");
             }
         });
+        */
 
         JoystickView joystick = (JoystickView) findViewById(R.id.joystickView);
         joystick.setOnMoveListener(new JoystickView.OnMoveListener() {
             @Override
             public void onMove(int angle, int strength) {
                 TextView textView = (TextView) findViewById(R.id.textView);
-                textView.setText("Angle: "+angle+" , Strength: "+strength+"   ");
+                if(angle > 70 && angle < 110 && strength > 65) {
+                    textView.setTextColor(Color.GREEN);
+                    textView.setText("UP     ");
+                } else if(angle > 160 && angle < 200 && strength > 65){
+                    textView.setTextColor(Color.GREEN);
+                    textView.setText("LEFT     ");
+                } else if(angle > 250 && angle < 290 && strength > 65){
+                    textView.setTextColor(Color.GREEN);
+                    textView.setText("DOWN     ");
+                } else if((angle > 340 && angle < 360) || (angle < 20 && angle >= 0) && strength > 65){
+                    textView.setTextColor(Color.GREEN);
+                    textView.setText("RIGHT     ");
+                }
+                else{
+                    textView.setTextColor(Color.BLACK);
+                    textView.setText("Angle: "+angle+" , Strength: "+strength+"   ");
+                }
             }
         });
     }
