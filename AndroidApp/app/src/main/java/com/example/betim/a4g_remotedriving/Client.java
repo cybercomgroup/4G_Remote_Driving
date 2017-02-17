@@ -115,7 +115,7 @@ public class Client extends AppCompatActivity {
                     textView.setText("Angle: "+angle+" , Strength: "+strength+"   ");
                 }
             }
-        });
+        },100);
     }
 /*
     public void send(final View view){
@@ -140,12 +140,4 @@ public class Client extends AppCompatActivity {
         }
     }
     */
-
-    public void moveUp(View view){
-        Button bil = (Button) findViewById(R.id.bil);
-        float y = bil.getY();
-        float x = bil.getX();
-
-        bil.setY(y-10);
-    }
 }
