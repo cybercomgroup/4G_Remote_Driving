@@ -19,6 +19,7 @@ import java.io.PrintWriter;
 import java.net.Socket;
 
 import io.github.controlwear.virtual.joystick.android.JoystickView;
+import java.lang.Math;
 
 public class Client extends AppCompatActivity {
     //Variables:
@@ -43,7 +44,7 @@ public class Client extends AppCompatActivity {
             public void run() {
                 try {
                     Log.d(TAG, "Connecting...");
-                    clientSocket = new Socket("95.80.12.203", 3000);
+                    clientSocket = new Socket("129.16.231.161", 3002);
                     //clientSocket.setSendBufferSize(1);
                     Log.d(TAG, "Connected to server... proceeding...");
 
@@ -80,47 +81,61 @@ public class Client extends AppCompatActivity {
         joystick.setOnMoveListener(new JoystickView.OnMoveListener() {
             @Override
             public void onMove(int angle, int strength) {
+                String steerSignal = "("+angle+";"+strength+")";
+                out.print(steerSignal);
+                out.flush();
+
+                strength = strength /2;
                 TextView textView = (TextView) findViewById(R.id.textView);
-                if(angle > 70 && angle < 110 && strength > 65) {
+                if(angle > 70 && angle < 110) {
                     textView.setTextColor(Color.GREEN);
                     textView.setText("UP     ");
 
                     Button bil = (Button) findViewById(R.id.bil);
                     float y = bil.getY();
-                    bil.setY(y-10);
-                } else if(angle > 160 && angle < 200 && strength > 65){
+                    bil.setY(y-strength);
+                } else if(angle > 160 && angle < 200){
                     textView.setTextColor(Color.GREEN);
                     textView.setText("LEFT     ");
 
                     Button bil = (Button) findViewById(R.id.bil);
                     float x = bil.getX();
-                    bil.setX(x-10);
-                } else if(angle > 250 && angle < 290 && strength > 65){
+                    bil.setX(x-strength);
+                } else if(angle > 250 && angle < 290){
                     textView.setTextColor(Color.GREEN);
                     textView.setText("DOWN     ");
 
                     Button bil = (Button) findViewById(R.id.bil);
                     float y = bil.getY();
-                    bil.setY(y+10);
-                } else if((angle > 340 && angle < 360) || (angle < 20 && angle >= 0) && strength > 65){
+                    bil.setY(y+strength);
+                } else if((angle > 340 && angle < 360) || (angle < 20 && angle >= 0)){
                     textView.setTextColor(Color.GREEN);
                     textView.setText("RIGHT     ");
 
                     Button bil = (Button) findViewById(R.id.bil);
                     float x = bil.getX();
-                    bil.setX(x+10);
+                    bil.setX(x+strength);
+                } else if(angle >= 20 && angle <= 70){
+                    textView.setTextColor(Color.GREEN);
+                    textView.setText("45     ");
+
+                    Button bil = (Button) findViewById(R.id.bil);
+                    float x = bil.getX();
+                    float y = bil.getY();
+                    bil.setX(x+ (((float)(Math.cos(angle*(Math.PI/180))))*strength));
+                    bil.setY(y- (((float)(Math.sin(angle*(Math.PI/180))))*strength));
                 }
                 else{
                     textView.setTextColor(Color.BLACK);
                     textView.setText("Angle: "+angle+" , Strength: "+strength+"   ");
                 }
             }
-        },100);
+        },50);
     }
-/*
+
     public void send(final View view){
         try {
-            String clientMsgL = "1";
+            String clientMsgL = "(222;9)";
             String clientMsgR = "2";
             switch (view.getId()) {
                 case R.id.left:
@@ -139,5 +154,5 @@ public class Client extends AppCompatActivity {
             e.printStackTrace();
         }
     }
-    */
+
 }

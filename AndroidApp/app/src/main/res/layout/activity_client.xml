@@ -11,7 +11,7 @@
             android:layout_height="match_parent"
             android:id="@+id/stream">
         </WebView>
-<!--
+
         <Button
             android:id="@+id/right"
             android:layout_width="wrap_content"
@@ -30,7 +30,7 @@
             android:layout_alignParentLeft="true"
             android:text="Left"
             android:onClick="send"/>
--->
+
     <io.github.controlwear.virtual.joystick.android.JoystickView
         xmlns:custom="http://schemas.android.com/apk/res-auto"
         android:id="@+id/joystickView"
@@ -57,5 +57,13 @@
         android:textSize="36sp"
         android:layout_centerInParent="true"
         />
+
+    <TextView
+        android:id="@+id/coord"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+         />
 
 </RelativeLayout>
