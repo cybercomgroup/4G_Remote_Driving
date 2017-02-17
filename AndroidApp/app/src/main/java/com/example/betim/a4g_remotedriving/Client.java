@@ -17,10 +17,11 @@ import java.net.Socket;
 
 public class Client extends AppCompatActivity {
     //Variables:
-    private static final String TAG ="Client";
+    private static final String TAG = Client.class.getName();
     private Socket clientSocket;
     private PrintWriter out;
     private BufferedReader in;
+    private boolean icmpRun = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,6 +33,7 @@ public class Client extends AppCompatActivity {
         Intent intent = getIntent();
         String ip = intent.getStringExtra("ipaddr");
         String port = intent.getStringExtra("port");
+        Log.d(TAG, "Stream adress fetched from: " + ip + " listening on port: " + port);
 
         Thread comThread = new Thread(new Runnable() {
             @Override
@@ -68,6 +70,13 @@ public class Client extends AppCompatActivity {
                 Log.d(TAG, "Webview loaded successfully... proceeding...");
             }
         });
+
+        if(!icmpRun) {
+            Intent icmpIntent = new Intent(this, icmpService.class);
+            startService(icmpIntent);
+            icmpRun = true;
+            Log.d(TAG, "icmpService started..");
+        }
     }
 
     public void send(final View view){
@@ -89,6 +98,33 @@ public class Client extends AppCompatActivity {
         }
         catch(Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    @Override
+    protected void onStop(){
+        super.onStop();
+        if(icmpRun){
+            Intent icmpIntent = new Intent(this, icmpService.class);
+            stopService(icmpIntent);
+        }
+    }
+
+    @Override
+    protected void onResume(){
+        super.onResume();
+        if(icmpRun){
+            Intent icmpIntent = new Intent(this, icmpService.class);
+            stopService(icmpIntent);
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if(icmpRun){
+            Intent icmpIntent = new Intent(this, icmpService.class);
+            stopService(icmpIntent);
         }
     }
 }
