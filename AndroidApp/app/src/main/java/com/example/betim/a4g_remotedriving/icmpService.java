@@ -11,6 +11,8 @@ import android.util.Log;
 import android.widget.Toast;
 import android.os.Process;
 
+
+//----------OBS! OBS! DEPRECATED PING SOLUTION KEPT AS EXAMPLE FOR SERVICE CLASS OBS! OBS!----------
 public class icmpService extends Service {
     private Looper mServiceLooper;
     private ServiceHandler mServiceHandler;
