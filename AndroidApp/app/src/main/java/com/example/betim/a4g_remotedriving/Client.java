@@ -14,7 +14,6 @@ import android.webkit.WebView;
 import android.util.Log;
 import android.widget.Toast;
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
@@ -26,7 +25,11 @@ public class Client extends AppCompatActivity {
     private PrintWriter out;
     private BufferedReader in;
     private boolean icmpRun = false;
+    private ComponentName serviceName;
+    private JobInfo jobInfo;
+    private JobScheduler scheduler;
     public static final int JOB_ID = 1;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -88,13 +91,13 @@ public class Client extends AppCompatActivity {
     }
 
     private void scheduleJob() {
-        ComponentName serviceName = new ComponentName(this, icmpJobService.class);
-        JobInfo jobInfo = new JobInfo.Builder(JOB_ID, serviceName)
+        serviceName = new ComponentName(this, icmpJobService.class);
+        jobInfo = new JobInfo.Builder(JOB_ID, serviceName)
                 .setPeriodic(2000)
                 .setRequiresDeviceIdle(false)
                 .setRequiredNetworkType(JobInfo.NETWORK_TYPE_UNMETERED)
                 .build();
-        JobScheduler scheduler = (JobScheduler) getSystemService(Context.JOB_SCHEDULER_SERVICE);
+        scheduler = (JobScheduler) getSystemService(Context.JOB_SCHEDULER_SERVICE);
         int result = scheduler.schedule(jobInfo);
         if(result == JobScheduler.RESULT_SUCCESS){
             Toast.makeText(this, R.string.job_scheduled_successfully, Toast.LENGTH_LONG).show();
@@ -127,17 +130,17 @@ public class Client extends AppCompatActivity {
     protected void onStop(){
         super.onStop();
         if(icmpRun){
-            Intent icmpIntent = new Intent(this, icmpService.class);
-            stopService(icmpIntent);
+            scheduler.cancelAll();
+            icmpRun = false;
         }
     }
 
     @Override
     protected void onResume(){
         super.onResume();
-        if(icmpRun){
-            Intent icmpIntent = new Intent(this, icmpService.class);
-            stopService(icmpIntent);
+        if(!icmpRun){
+            scheduleJob();
+            icmpRun = true;
         }
     }
 
@@ -145,8 +148,8 @@ public class Client extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         if(icmpRun){
-            Intent icmpIntent = new Intent(this, icmpService.class);
-            stopService(icmpIntent);
+            scheduler.cancelAll();
+            icmpRun = false;
         }
     }
 }
