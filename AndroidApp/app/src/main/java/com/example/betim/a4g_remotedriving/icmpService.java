@@ -16,9 +16,6 @@ public class icmpService extends Service {
     private ServiceHandler mServiceHandler;
     private static final String TAG = icmpService.class.getName();
 
-    public icmpService() {
-    }
-
     private final class ServiceHandler extends Handler{
         public ServiceHandler(Looper looper){
             super(looper);

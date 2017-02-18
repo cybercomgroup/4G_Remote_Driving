@@ -1,5 +1,9 @@
 package com.example.betim.a4g_remotedriving;
 
+import android.app.job.JobInfo;
+import android.app.job.JobScheduler;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -22,26 +26,53 @@ public class Client extends AppCompatActivity {
     private PrintWriter out;
     private BufferedReader in;
     private boolean icmpRun = false;
+    public static final int JOB_ID = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
         this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
-
         setContentView(R.layout.activity_client);
+
         Intent intent = getIntent();
         String ip = intent.getStringExtra("ipaddr");
-        String port = intent.getStringExtra("port");
-        Log.d(TAG, "Stream adress fetched from: " + ip + " listening on port: " + port);
+        int port = Integer.parseInt(intent.getStringExtra("port"));
+        //initNetWork(ip, port);
+        initNetwork("129.16.229.123", 3006);
+        initStream("http://129.16.229.123:8000/stream", 100);
 
+        if(!icmpRun) {
+            scheduleJob();
+            icmpRun = true;
+            Log.d(TAG, "icmpService started..");
+        }
+    }
+
+    private void initStream(final String URI, int zoom){
+        final WebView webView = (WebView)findViewById(R.id.stream);
+        int default_zoom_level=zoom;
+        webView.setInitialScale(default_zoom_level);
+        webView.post(new Runnable()
+        {
+            @Override
+            public void run() {
+                int width = webView.getWidth();
+                int height = webView.getHeight();
+                Log.d(TAG, "Webview initialized, width: " + width + "height: " + height);
+                webView.loadUrl(URI + "?width="+width+"&height="+height);
+                Log.d(TAG, "Webview loaded successfully... proceeding...");
+            }
+        });
+    }
+
+    private void initNetwork(final String ip, final int port){
         Thread comThread = new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
                     Log.d(TAG, "Connecting...");
-                    clientSocket = new Socket("129.16.229.123", 3006);
-                    //clientSocket.setSendBufferSize(1);
+                    clientSocket = new Socket(ip, port);
                     Log.d(TAG, "Connected to server... proceeding...");
 
                     in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
@@ -54,28 +85,19 @@ public class Client extends AppCompatActivity {
             }
         });
         comThread.start();
+    }
 
-        //Toast.makeText(this, "Ip: "+ ip + ", Port: " + port, Toast.LENGTH_SHORT).show();
-        final WebView webView = (WebView)findViewById(R.id.stream);
-        int default_zoom_level=100;
-        webView.setInitialScale(default_zoom_level);
-        webView.post(new Runnable()
-        {
-            @Override
-            public void run() {
-                int width = webView.getWidth();
-                int height = webView.getHeight();
-                Log.d(TAG, "Webview initialized, width: " + width + "height: " + height);
-                webView.loadUrl("http://129.16.229.123:8000/stream" + "?width="+width+"&height="+height);
-                Log.d(TAG, "Webview loaded successfully... proceeding...");
-            }
-        });
-
-        if(!icmpRun) {
-            Intent icmpIntent = new Intent(this, icmpService.class);
-            startService(icmpIntent);
-            icmpRun = true;
-            Log.d(TAG, "icmpService started..");
+    private void scheduleJob() {
+        ComponentName serviceName = new ComponentName(this, icmpJobService.class);
+        JobInfo jobInfo = new JobInfo.Builder(JOB_ID, serviceName)
+                .setPeriodic(2000)
+                .setRequiresDeviceIdle(false)
+                .setRequiredNetworkType(JobInfo.NETWORK_TYPE_UNMETERED)
+                .build();
+        JobScheduler scheduler = (JobScheduler) getSystemService(Context.JOB_SCHEDULER_SERVICE);
+        int result = scheduler.schedule(jobInfo);
+        if(result == JobScheduler.RESULT_SUCCESS){
+            Toast.makeText(this, R.string.job_scheduled_successfully, Toast.LENGTH_LONG).show();
         }
     }
 
