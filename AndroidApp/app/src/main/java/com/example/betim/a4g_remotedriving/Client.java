@@ -1,10 +1,9 @@
 package com.example.betim.a4g_remotedriving;
-
-import android.app.job.JobInfo;
-import android.app.job.JobScheduler;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
+import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -12,7 +11,6 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.webkit.WebView;
 import android.util.Log;
-import android.widget.Toast;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
@@ -24,12 +22,8 @@ public class Client extends AppCompatActivity {
     private Socket clientSocket;
     private PrintWriter out;
     private BufferedReader in;
-    private boolean icmpRun = false;
-    private ComponentName serviceName;
-    private JobInfo jobInfo;
-    private JobScheduler scheduler;
-    public static final int JOB_ID = 1;
-
+    BoundService mBoundService;
+    boolean mServiceBound = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,16 +34,10 @@ public class Client extends AppCompatActivity {
 
         Intent intent = getIntent();
         String ip = intent.getStringExtra("ipaddr");
-        int port = Integer.parseInt(intent.getStringExtra("port"));
+        //int port = Integer.parseInt(intent.getStringExtra("port"));
         //initNetWork(ip, port);
         initNetwork("129.16.229.123", 3006);
         initStream("http://129.16.229.123:8000/stream", 100);
-
-        if(!icmpRun) {
-            scheduleJob();
-            icmpRun = true;
-            Log.d(TAG, "icmpService started..");
-        }
     }
 
     private void initStream(final String URI, int zoom){
@@ -90,20 +78,6 @@ public class Client extends AppCompatActivity {
         comThread.start();
     }
 
-    private void scheduleJob() {
-        serviceName = new ComponentName(this, icmpJobService.class);
-        jobInfo = new JobInfo.Builder(JOB_ID, serviceName)
-                .setPeriodic(2000)
-                .setRequiresDeviceIdle(false)
-                .setRequiredNetworkType(JobInfo.NETWORK_TYPE_UNMETERED)
-                .build();
-        scheduler = (JobScheduler) getSystemService(Context.JOB_SCHEDULER_SERVICE);
-        int result = scheduler.schedule(jobInfo);
-        if(result == JobScheduler.RESULT_SUCCESS){
-            Toast.makeText(this, R.string.job_scheduled_successfully, Toast.LENGTH_LONG).show();
-        }
-    }
-
     public void send(final View view){
         try {
             String clientMsgL = "1";
@@ -126,30 +100,47 @@ public class Client extends AppCompatActivity {
         }
     }
 
+    public void sendPing(View view){
+        Log.d(TAG, "Is service bound=" + mServiceBound);
+        if(mServiceBound){
+            int num = mBoundService.getPingstamp();
+            Log.d(TAG, "Result of ping is: " + num);
+        }
+    }
+
     @Override
-    protected void onStop(){
+    protected void onStart() {
+        super.onStart();
+        Log.d(TAG, "In onStart");
+        Intent intent = new Intent(this, BoundService.class);
+        bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
+    }
+
+    @Override
+    protected void onStop() {
         super.onStop();
-        if(icmpRun){
-            scheduler.cancelAll();
-            icmpRun = false;
+        if (mServiceBound) {
+            Log.d(TAG, "In onStop");
+            unbindService(mServiceConnection);
+            mServiceBound = false;
         }
     }
 
-    @Override
-    protected void onResume(){
-        super.onResume();
-        if(!icmpRun){
-            scheduleJob();
-            icmpRun = true;
-        }
-    }
+    private ServiceConnection mServiceConnection = new ServiceConnection() {
 
-    @Override
-    protected void onPause() {
-        super.onPause();
-        if(icmpRun){
-            scheduler.cancelAll();
-            icmpRun = false;
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            Log.d(TAG, "in onServiceDisconnected");
+            mServiceBound = false;
         }
-    }
+
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            Log.d(TAG, "In onServiceConnected");
+            BoundService.MyBinder myBinder = (BoundService.MyBinder) service;
+            mBoundService = myBinder.getService();
+            mServiceBound = true;
+        }
+    };
+
 }

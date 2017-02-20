@@ -15,6 +15,15 @@
         </WebView>
 
         <Button
+        android:text="Ping"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true"
+        android:id="@+id/sendPing"
+            android:onClick="sendPing"/>
+
+        <Button
             android:id="@+id/right"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -32,7 +41,7 @@
             android:text="Left"
             android:onClick="send"/>
 
-        <TextView
+    <TextView
             android:text="TextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
