@@ -11,7 +11,12 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.webkit.WebView;
 import android.util.Log;
+import android.widget.TextView;
+
+import org.w3c.dom.Text;
+
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
@@ -103,8 +108,10 @@ public class Client extends AppCompatActivity {
     public void sendPing(View view){
         Log.d(TAG, "Is service bound=" + mServiceBound);
         if(mServiceBound){
-            int num = mBoundService.getPingstamp();
-            Log.d(TAG, "Result of ping is: " + num);
+            double ping = mBoundService.getLatency("172.217.22.163");
+            TextView temp = (TextView) findViewById(R.id.pingbox);
+            temp.setText(ping + " ms");
+            Log.d(TAG, "Result of ping is: " + ping);
         }
     }
 
