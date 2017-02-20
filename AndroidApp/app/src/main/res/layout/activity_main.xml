@@ -22,19 +22,23 @@
         android:layout_width="164dp"
         android:layout_height="wrap_content"
         android:textSize="26dp"
-        android:id="@+id/ip_addr" />
+        android:id="@+id/ip_addr"
+        android:gravity="center_horizontal"
+        />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Enter portnumber"
+        android:text="Enter port number"
         android:textSize="26dp"/>
 
     <EditText
-        android:layout_width="164dp"
+        android:layout_width="95dp"
         android:layout_height="wrap_content"
         android:textSize="26dp"
-        android:id="@+id/port_nr" />
+        android:id="@+id/port_nr"
+        android:gravity="center_horizontal"
+        />
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
