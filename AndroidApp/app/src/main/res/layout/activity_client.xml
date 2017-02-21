@@ -23,14 +23,14 @@
         android:id="@+id/sendPing"
             android:onClick="sendPing"/>
 
-        <Button
+    <Button
             android:id="@+id/right"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
             android:layout_alignParentRight="true"
-            android:text="Right"
-            android:onClick="send"/>
+            android:text="recursivePing"
+            android:onClick="startRecursivePing"/>
 
         <Button
             android:id="@+id/left"

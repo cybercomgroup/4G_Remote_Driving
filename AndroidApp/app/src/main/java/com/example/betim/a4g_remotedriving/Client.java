@@ -3,6 +3,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.os.Handler;
 import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -12,24 +13,33 @@ import android.view.WindowManager;
 import android.webkit.WebView;
 import android.util.Log;
 import android.widget.TextView;
-
-import org.w3c.dom.Text;
-
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 
 public class Client extends AppCompatActivity {
-    //Variables:
-    private static final String TAG = Client.class.getName();
+    //--------Strings--------
+    private static final String TAG = "Client";
+    private  String PARENT_IP;
+    private  String PARENT_PORT;
+    //--------Network Variables--------
     private Socket clientSocket;
     private PrintWriter out;
     private BufferedReader in;
+    //--------Service Variables--------
     BoundService mBoundService;
     boolean mServiceBound = false;
+    //-------Handler Variables---------
+    Handler handler;
+    Runnable runnable;
 
+    /**
+     * Initializes the Client
+     * Sets borderless View
+     * Initializes network connection and Stream
+     * @param savedInstanceState
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -38,13 +48,21 @@ public class Client extends AppCompatActivity {
         setContentView(R.layout.activity_client);
 
         Intent intent = getIntent();
-        String ip = intent.getStringExtra("ipaddr");
+        String PARENT_IP = intent.getStringExtra("ipaddr");
+        String PARENT_PORT = intent.getStringExtra("port");
+        int PORT_INT = Integer.parseInt(PARENT_PORT);
         //int port = Integer.parseInt(intent.getStringExtra("port"));
         //initNetWork(ip, port);
-        initNetwork("129.16.229.123", 3006);
-        initStream("http://129.16.229.123:8000/stream", 100);
+        initNetwork(PARENT_IP, PORT_INT);
+        initStream("http://" + PARENT_IP +"/stream", PORT_INT);
+        handler = new Handler();
     }
 
+    /**
+     * Initializes the stream according to params
+     * @param URI
+     * @param zoom
+     */
     private void initStream(final String URI, int zoom){
         final WebView webView = (WebView)findViewById(R.id.stream);
         int default_zoom_level=zoom;
@@ -62,6 +80,11 @@ public class Client extends AppCompatActivity {
         });
     }
 
+    /**
+     * Initializes Network connection between client and server.
+     * @param ip
+     * @param port
+     */
     private void initNetwork(final String ip, final int port){
         Thread comThread = new Thread(new Runnable() {
             @Override
@@ -83,6 +106,10 @@ public class Client extends AppCompatActivity {
         comThread.start();
     }
 
+    /**
+     * Onclick functions for Clients View, case casted by ViewIDs
+     * @param view
+     */
     public void send(final View view){
         try {
             String clientMsgL = "1";
@@ -105,24 +132,62 @@ public class Client extends AppCompatActivity {
         }
     }
 
+    /**
+     * Contacts Bound Service if ping is requested and updates Clients View depending on termination
+     * result.
+     * @param view
+     */
     public void sendPing(View view){
         Log.d(TAG, "Is service bound=" + mServiceBound);
         if(mServiceBound){
-            double ping = mBoundService.getLatency("172.217.22.163");
+            double ping = mBoundService.getLatency("172.217.22.163", 1);
             TextView temp = (TextView) findViewById(R.id.pingbox);
             temp.setText(ping + " ms");
             Log.d(TAG, "Result of ping is: " + ping);
         }
     }
 
+    /**
+     * Recursive method call which threads ping requests in background
+     * @param ip
+     * @param timeout important to call in seconds
+     */
+    public void startRecursivePing(final String ip, final int timeout){
+        //"172.217.22.163" google
+        final int delay = timeout * 1000;
+        if(mServiceBound) {
+            Log.d(TAG, "Recursive starting...");
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    double ping = mBoundService.getLatency(ip, timeout);
+                    TextView temp = (TextView) findViewById(R.id.pingbox);
+                    temp.setText(ping + " ms");
+                    Log.d(TAG, "Result of ping is: " + ping);
+                    handler.postDelayed(this, delay);
+                }
+            }, delay);
+        }
+        else
+            Log.d(TAG,"Recursive failed");
+            return;
+    }
+
+    /**
+     * Overridden callback to handle lifecycle of BoundServices and Recursive Handler
+     */
     @Override
     protected void onStart() {
         super.onStart();
         Log.d(TAG, "In onStart");
         Intent intent = new Intent(this, BoundService.class);
         bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
+        startRecursivePing(PARENT_IP, 1);
     }
 
+    /**
+     * Overriden callback to handle lifecycle of BoundServices
+     */
     @Override
     protected void onStop() {
         super.onStop();
@@ -131,8 +196,18 @@ public class Client extends AppCompatActivity {
             unbindService(mServiceConnection);
             mServiceBound = false;
         }
+        handler.removeCallbacksAndMessages(runnable);
     }
 
+    @Override
+    protected void onPause(){
+        super.onPause();
+        //handler.removeCallbacks(runnable);
+    }
+
+    /**
+     * Private helper for service Connection of BoundServices, returns the Ibinder of BoundService.java
+     */
     private ServiceConnection mServiceConnection = new ServiceConnection() {
 
         @Override
