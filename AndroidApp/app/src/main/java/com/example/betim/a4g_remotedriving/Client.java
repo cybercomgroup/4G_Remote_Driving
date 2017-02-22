@@ -20,6 +20,7 @@ import java.net.Socket;
 
 import io.github.controlwear.virtual.joystick.android.JoystickView;
 import java.lang.Math;
+import java.net.UnknownHostException;
 
 public class Client extends AppCompatActivity {
     //Variables:
@@ -36,15 +37,15 @@ public class Client extends AppCompatActivity {
 
         setContentView(R.layout.activity_client);
         Intent intent = getIntent();
-        String ip = intent.getStringExtra("ipaddr");
-        String port = intent.getStringExtra("port");
+        final String ip = intent.getStringExtra("ipaddr");
+        final String port = intent.getStringExtra("port");
 
         Thread comThread = new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
                     Log.d(TAG, "Connecting...");
-                    clientSocket = new Socket("129.16.231.161", 3002);
+                    clientSocket = new Socket(ip, Integer.parseInt(port));
                     //clientSocket.setSendBufferSize(1);
                     Log.d(TAG, "Connected to server... proceeding...");
 
@@ -52,8 +53,28 @@ public class Client extends AppCompatActivity {
                     out = new PrintWriter(clientSocket.getOutputStream(), true);
                     Log.d(TAG, "Input/Outputstreams attached... proceeding...");
                 }
+                catch(IllegalArgumentException e) {
+                    e.printStackTrace();
+
+                    Log.w("hej", "IllegalARG didn't work: "+ e.getMessage());
+
+                    runOnUiThread(new Runnable(){
+                        public void run() {
+                            Toast.makeText(getApplicationContext(), "Invalid port number, should be between 1023 - 65000",Toast.LENGTH_LONG).show();
+                        }
+                    });
+                }
+                catch (UnknownHostException e){
+                    runOnUiThread(new Runnable(){
+                        public void run() {
+                            Toast.makeText(getApplicationContext(), "Error connecting to server",Toast.LENGTH_LONG).show();
+                        }
+                    });
+                }
                 catch(Exception e) {
                     e.printStackTrace();
+                    //Toast.makeText(Client.this, "hejhej", Toast.LENGTH_SHORT).show();
+                    Log.w("hej", "BETIMGENERAL didn't work: "+ e.getMessage());
                 }
             }
         });
@@ -85,50 +106,6 @@ public class Client extends AppCompatActivity {
                 out.print(steerSignal);
                 out.flush();
 
-                strength = strength /2;
-                TextView textView = (TextView) findViewById(R.id.textView);
-                if(angle > 70 && angle < 110) {
-                    textView.setTextColor(Color.GREEN);
-                    textView.setText("UP     ");
-
-                    Button bil = (Button) findViewById(R.id.bil);
-                    float y = bil.getY();
-                    bil.setY(y-strength);
-                } else if(angle > 160 && angle < 200){
-                    textView.setTextColor(Color.GREEN);
-                    textView.setText("LEFT     ");
-
-                    Button bil = (Button) findViewById(R.id.bil);
-                    float x = bil.getX();
-                    bil.setX(x-strength);
-                } else if(angle > 250 && angle < 290){
-                    textView.setTextColor(Color.GREEN);
-                    textView.setText("DOWN     ");
-
-                    Button bil = (Button) findViewById(R.id.bil);
-                    float y = bil.getY();
-                    bil.setY(y+strength);
-                } else if((angle > 340 && angle < 360) || (angle < 20 && angle >= 0)){
-                    textView.setTextColor(Color.GREEN);
-                    textView.setText("RIGHT     ");
-
-                    Button bil = (Button) findViewById(R.id.bil);
-                    float x = bil.getX();
-                    bil.setX(x+strength);
-                } else if(angle >= 20 && angle <= 70){
-                    textView.setTextColor(Color.GREEN);
-                    textView.setText("45     ");
-
-                    Button bil = (Button) findViewById(R.id.bil);
-                    float x = bil.getX();
-                    float y = bil.getY();
-                    bil.setX(x+ (((float)(Math.cos(angle*(Math.PI/180))))*strength));
-                    bil.setY(y- (((float)(Math.sin(angle*(Math.PI/180))))*strength));
-                }
-                else{
-                    textView.setTextColor(Color.BLACK);
-                    textView.setText("Angle: "+angle+" , Strength: "+strength+"   ");
-                }
             }
         },50);
     }
