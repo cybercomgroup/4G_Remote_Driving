@@ -81,7 +81,7 @@ public class BoundService extends Service {
             public void run() {
                 String pingCommand = "/system/bin/ping -c " + 1 + " -W" + timeout + " " + host;
                 String inputLine = "";
-                double avgRtt = 0;
+                double avgRtt=0;
                 try {
                     Process process = Runtime.getRuntime().exec(pingCommand);
                     BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
@@ -97,7 +97,8 @@ public class BoundService extends Service {
                     Log.v(LOG_TAG, "getLatency: EXCEPTION");
                     e.printStackTrace();
                 }
-                String afterEqual = inputLine.substring(inputLine.indexOf("="), inputLine.length()).trim();
+                String afterEqual = null;
+                afterEqual = inputLine.substring(inputLine.indexOf("="), inputLine.length()).trim();
                 String afterFirstSlash = afterEqual.substring(afterEqual.indexOf('/') + 1, afterEqual.length()).trim();
                 String strAvgRtt = afterFirstSlash.substring(0, afterFirstSlash.indexOf('/'));
                 avgRtt = Double.valueOf(strAvgRtt);

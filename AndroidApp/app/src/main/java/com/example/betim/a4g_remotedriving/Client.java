@@ -12,6 +12,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.webkit.WebView;
 import android.util.Log;
+import android.widget.Button;
 import android.widget.TextView;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -182,6 +183,11 @@ public class Client extends AppCompatActivity {
         Log.d(TAG, "In onStart");
         Intent intent = new Intent(this, BoundService.class);
         bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
+        try{
+            Thread.sleep(5000);
+        }catch(InterruptedException e){
+            e.printStackTrace();
+        }
         startRecursivePing(PARENT_IP, 1);
     }
 
