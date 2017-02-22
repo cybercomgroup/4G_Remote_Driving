@@ -7,19 +7,18 @@
     tools:context="com.example.betim.a4g_remotedriving.Client">
 
         <WebView
+            android:id="@+id/stream"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:id="@+id/stream">
-
+            android:layout_height="match_parent" >
         </WebView>
 
         <Button
-        android:text="Ping"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+            android:id="@+id/sendPing"
+            android:text="Ping"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_alignParentRight="true"
-        android:layout_alignParentTop="true"
-        android:id="@+id/sendPing"
+            android:layout_alignParentTop="true"
             android:onClick="sendPing"/>
 
     <Button
@@ -27,26 +26,18 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
-            android:layout_alignParentRight="true"
+            android:layout_alignParentLeft="true"
             android:text="recursivePing"
             android:onClick="startRecursivePing"/>
 
-        <Button
-            android:id="@+id/left"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
-            android:layout_alignParentLeft="true"
-            android:text="Left"
-            android:onClick="send"/>
-
     <TextView
+            android:id="@+id/pingbox"
             android:text="TextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_x="60dp"
             android:layout_y="48dp"
-            android:id="@+id/pingbox" />
+             />
 
     <io.github.controlwear.virtual.joystick.android.JoystickView
         xmlns:custom="http://schemas.android.com/apk/res-auto"
@@ -64,15 +55,6 @@
         android:textSize="24sp"
         android:layout_alignParentTop="true"
         android:layout_alignParentRight="true"
-        />
-
-    <Button
-        android:id="@+id/bil"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Bil"
-        android:textSize="36sp"
-        android:layout_centerInParent="true"
         />
 
     <TextView

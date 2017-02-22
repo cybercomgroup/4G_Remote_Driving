@@ -12,16 +12,13 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.webkit.WebView;
 import android.util.Log;
-import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
-
 import io.github.controlwear.virtual.joystick.android.JoystickView;
-import java.lang.Math;
 import java.net.UnknownHostException;
 
 public class Client extends AppCompatActivity {
@@ -151,32 +148,6 @@ public class Client extends AppCompatActivity {
     }
 
     /**
-     * Onclick functions for Clients View, case casted by ViewIDs
-     * @param view
-     */
-    public void send(final View view){
-        try {
-            String clientMsgL = "(222;9)";
-            String clientMsgR = "2";
-            switch (view.getId()) {
-                case R.id.left:
-                    Log.d(TAG, "Sending data: " + clientMsgL + " to server...");
-                    out.print(clientMsgL);
-                    out.flush();
-                    break;
-                case R.id.right:
-                    Log.d(TAG, "Sending data: " + clientMsgR + " to server...");
-                    out.print(clientMsgR);
-                    out.flush();
-                    break;
-            }
-        }
-        catch(Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    /**
      * Contacts Bound Service if ping is requested and updates Clients View depending on termination
      * result.
      * @param view
@@ -230,11 +201,6 @@ public class Client extends AppCompatActivity {
         Log.d(TAG, "In onStart");
         Intent intent = new Intent(this, BoundService.class);
         bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
-        try{
-            Thread.sleep(5000);
-        }catch(InterruptedException e){
-            e.printStackTrace();
-        }
         startRecursivePing(PARENT_IP, 1);
     }
 
