@@ -39,6 +39,8 @@ public class Client extends AppCompatActivity {
     //-------Handler Variables---------
     Handler handler;
     Runnable runnable;
+    //Ping variables
+    int PARENT_TIMEOUT;
 
     /**
      * Initializes the Client
@@ -173,7 +175,7 @@ public class Client extends AppCompatActivity {
             e.printStackTrace();
         }
     }
-    
+
     /**
      * Contacts Bound Service if ping is requested and updates Clients View depending on termination
      * result.
@@ -187,6 +189,10 @@ public class Client extends AppCompatActivity {
             temp.setText(ping + " ms");
             Log.d(TAG, "Result of ping is: " + ping);
         }
+    }
+
+    public void startRecursivePing(View view){
+        startRecursivePing(PARENT_IP, 1000);
     }
 
     /**

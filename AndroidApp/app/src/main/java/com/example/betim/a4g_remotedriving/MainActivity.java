@@ -31,7 +31,6 @@ public class MainActivity extends AppCompatActivity {
 
         EditText ipField = (EditText) findViewById(R.id.ip_addr);
         EditText portField = (EditText) findViewById(R.id.port_nr);
-
         String ip = ipField.getText().toString();
         String port = portField.getText().toString();
 
