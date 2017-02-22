@@ -11,16 +11,26 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:id="@+id/stream">
+
         </WebView>
 
         <Button
+        android:text="Ping"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true"
+        android:id="@+id/sendPing"
+            android:onClick="sendPing"/>
+
+    <Button
             android:id="@+id/right"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
             android:layout_alignParentRight="true"
-            android:text="Right"
-            android:onClick="send"/>
+            android:text="recursivePing"
+            android:onClick="startRecursivePing"/>
 
         <Button
             android:id="@+id/left"
@@ -30,5 +40,13 @@
             android:layout_alignParentLeft="true"
             android:text="Left"
             android:onClick="send"/>
+
+    <TextView
+            android:text="TextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_x="60dp"
+            android:layout_y="48dp"
+            android:id="@+id/pingbox" />
 
 </RelativeLayout>

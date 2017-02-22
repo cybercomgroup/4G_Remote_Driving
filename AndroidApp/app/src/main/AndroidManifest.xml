@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.betim.a4g_remotedriving">
+
     <uses-permission android:name="android.permission.INTERNET" />
 
     <application
@@ -15,13 +16,19 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".Client" android:screenOrientation="landscape" android:theme="@style/streamTheme" >
+        <activity
+            android:name=".Client"
+            android:screenOrientation="landscape"
+            android:theme="@style/streamTheme">
             <intent-filter>
                 <action android:name="com.example.betim.a4g_remotedriving.Client" />
-
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
+        <service
+            android:name=".BoundService"
+            android:enabled="true"
+            android:exported="true"></service>
     </application>
 
 </manifest>

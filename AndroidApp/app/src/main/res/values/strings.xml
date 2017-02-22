@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">4G_RemoteDriving</string>
+    <string name="job_scheduled_successfully">Scheduled Job Succeded</string>
 </resources>
