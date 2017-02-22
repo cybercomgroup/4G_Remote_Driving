@@ -5,7 +5,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="com.example.betim.a4g_remotedriving.Client">
-    style = "@style/streamTheme"
 
         <WebView
             android:layout_width="match_parent"
@@ -49,4 +48,38 @@
             android:layout_y="48dp"
             android:id="@+id/pingbox" />
 
+    <io.github.controlwear.virtual.joystick.android.JoystickView
+        xmlns:custom="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/joystickView"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+         />
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="24sp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentRight="true"
+        />
+
+    <Button
+        android:id="@+id/bil"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Bil"
+        android:textSize="36sp"
+        android:layout_centerInParent="true"
+        />
+
+    <TextView
+        android:id="@+id/coord"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+         />
 </RelativeLayout>

@@ -14,10 +14,15 @@ import android.webkit.WebView;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+
+import io.github.controlwear.virtual.joystick.android.JoystickView;
+import java.lang.Math;
+import java.net.UnknownHostException;
 
 public class Client extends AppCompatActivity {
     //--------Strings--------
@@ -57,6 +62,18 @@ public class Client extends AppCompatActivity {
         initNetwork(PARENT_IP, PORT_INT);
         initStream("http://" + PARENT_IP +"/stream", PORT_INT);
         handler = new Handler();
+
+        //Initializes joystick
+        JoystickView joystick = (JoystickView) findViewById(R.id.joystickView);
+        joystick.setOnMoveListener(new JoystickView.OnMoveListener() {
+            @Override
+            public void onMove(int angle, int strength) {
+                String steerSignal = "("+angle+";"+strength+")";
+                out.print(steerSignal);
+                out.flush();
+
+            }
+        },50);
     }
 
     /**
@@ -92,19 +109,43 @@ public class Client extends AppCompatActivity {
             public void run() {
                 try {
                     Log.d(TAG, "Connecting...");
+
                     clientSocket = new Socket(ip, port);
+                    //clientSocket.setSendBufferSize(1);
+
                     Log.d(TAG, "Connected to server... proceeding...");
 
                     in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
                     out = new PrintWriter(clientSocket.getOutputStream(), true);
                     Log.d(TAG, "Input/Outputstreams attached... proceeding...");
                 }
+                catch(IllegalArgumentException e) {
+                    e.printStackTrace();
+
+                    Log.w("hej", "IllegalARG didn't work: "+ e.getMessage());
+
+                    runOnUiThread(new Runnable(){
+                        public void run() {
+                            Toast.makeText(getApplicationContext(), "Invalid port number, should be between 1023 - 65000",Toast.LENGTH_LONG).show();
+                        }
+                    });
+                }
+                catch (UnknownHostException e){
+                    runOnUiThread(new Runnable(){
+                        public void run() {
+                            Toast.makeText(getApplicationContext(), "Error connecting to server",Toast.LENGTH_LONG).show();
+                        }
+                    });
+                }
                 catch(Exception e) {
                     e.printStackTrace();
+                    //Toast.makeText(Client.this, "hejhej", Toast.LENGTH_SHORT).show();
+                    Log.w("hej", "BETIMGENERAL didn't work: "+ e.getMessage());
                 }
             }
         });
         comThread.start();
+
     }
 
     /**
@@ -113,7 +154,7 @@ public class Client extends AppCompatActivity {
      */
     public void send(final View view){
         try {
-            String clientMsgL = "1";
+            String clientMsgL = "(222;9)";
             String clientMsgR = "2";
             switch (view.getId()) {
                 case R.id.left:
@@ -132,7 +173,7 @@ public class Client extends AppCompatActivity {
             e.printStackTrace();
         }
     }
-
+    
     /**
      * Contacts Bound Service if ping is requested and updates Clients View depending on termination
      * result.
@@ -230,5 +271,4 @@ public class Client extends AppCompatActivity {
             mServiceBound = true;
         }
     };
-
 }
