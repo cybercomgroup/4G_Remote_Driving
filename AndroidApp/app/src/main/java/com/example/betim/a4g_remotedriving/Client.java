@@ -1,8 +1,10 @@
 package com.example.betim.a4g_remotedriving;
+import android.annotation.TargetApi;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
@@ -10,8 +12,13 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.webkit.CookieManager;
+import android.webkit.PermissionRequest;
+import android.webkit.WebChromeClient;
+import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.util.Log;
+import android.webkit.WebViewClient;
 import android.widget.TextView;
 import android.widget.Toast;
 import java.io.BufferedReader;
@@ -24,8 +31,8 @@ import java.net.UnknownHostException;
 public class Client extends AppCompatActivity {
     //--------Strings--------
     private static final String TAG = "Client";
-    private  String PARENT_IP;
-    private  String PARENT_PORT;
+    private String PARENT_IP;
+    private String PARENT_PORT;
     //--------Network Variables--------
     private Socket clientSocket;
     private PrintWriter out;
@@ -38,6 +45,8 @@ public class Client extends AppCompatActivity {
     Runnable runnable;
     //Ping variables
     int PARENT_TIMEOUT;
+    private WebView mWebRTCWebView;
+
 
     /**
      * Initializes the Client
@@ -53,33 +62,86 @@ public class Client extends AppCompatActivity {
         setContentView(R.layout.activity_client);
 
         Intent intent = getIntent();
-        String PARENT_IP = intent.getStringExtra("ipaddr");
-        String PARENT_PORT = intent.getStringExtra("port");
+        PARENT_IP = intent.getStringExtra("ip_addr");
+        PARENT_PORT = intent.getStringExtra("port");
         int PORT_INT = Integer.parseInt(PARENT_PORT);
         //int port = Integer.parseInt(intent.getStringExtra("port"));
         //initNetWork(ip, port);
         initNetwork(PARENT_IP, PORT_INT);
-        initStream("http://" + PARENT_IP +"/stream", PORT_INT);
+        initStream("http://" + PARENT_IP +"/stream/webrtc", 150);
         handler = new Handler();
+        PARENT_TIMEOUT = 1;
 
         //Initializes joystick
-        JoystickView joystick = (JoystickView) findViewById(R.id.joystickView);
+        /**JoystickView joystick = (JoystickView) findViewById(R.id.joystickView);
         joystick.setOnMoveListener(new JoystickView.OnMoveListener() {
             @Override
             public void onMove(int angle, int strength) {
                 String steerSignal = "("+angle+";"+strength+")";
-                out.print(steerSignal);
-                out.flush();
+               if(out != null) {
+                   out.print(steerSignal);
+                   out.flush();
+               }
 
             }
-        },50);
+        },50);*/
     }
+
+    private void initStream(final String URI, int zoom){
+
+        mWebRTCWebView = (WebView) findViewById(R.id.stream);
+
+        WebSettings settings = mWebRTCWebView.getSettings();
+        settings.setJavaScriptEnabled(true);
+        settings.setUseWideViewPort(true);
+        settings.setLoadWithOverviewMode(true);
+        settings.setBuiltInZoomControls(true);
+        settings.setDomStorageEnabled(true);
+        settings.setMixedContentMode(WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE);
+        settings.setMediaPlaybackRequiresUserGesture(false);
+        if(Build.VERSION.SDK_INT > Build.VERSION_CODES.HONEYCOMB) {
+            // Hide the zoom controls for HONEYCOMB+
+            settings.setDisplayZoomControls(false);
+        }
+        // Enable remote debugging via chrome://inspect
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            WebView.setWebContentsDebuggingEnabled(true);
+        }
+        mWebRTCWebView.setWebViewClient(new WebViewClient());
+        CookieManager cookieManager = CookieManager.getInstance();
+        cookieManager.setAcceptThirdPartyCookies(mWebRTCWebView, true);
+
+        mWebRTCWebView.loadUrl("http://95.80.12.203:3000/stream/webrtc");
+        mWebRTCWebView.setInitialScale(zoom);
+
+        mWebRTCWebView.setWebChromeClient(new WebChromeClient(){
+
+            @Override
+            public void onPermissionRequest(final PermissionRequest request) {
+                Log.d(TAG, "onPermissionRequest");
+                Client.this.runOnUiThread(new Runnable() {
+                    @TargetApi(Build.VERSION_CODES.N)
+                    @Override
+                    public void run() {
+                        if(request.getOrigin().toString().equals("http://95.80.12.203:3000/stream/webrtc")) {
+                            request.grant(request.getResources());
+                        } else {
+                            request.deny();
+                        }
+                    }
+                });
+            }
+
+        });
+    }
+
+
 
     /**
      * Initializes the stream according to params
      * @param URI
      * @param zoom
-     */
+
     private void initStream(final String URI, int zoom){
         final WebView webView = (WebView)findViewById(R.id.stream);
         int default_zoom_level=zoom;
@@ -91,11 +153,11 @@ public class Client extends AppCompatActivity {
                 int width = webView.getWidth();
                 int height = webView.getHeight();
                 Log.d(TAG, "Webview initialized, width: " + width + "height: " + height);
-                webView.loadUrl(URI + "?width="+width+"&height="+height);
+                //http://95.80.12.203:3000/stream/webrtc
+                webView.loadUrl("http://95.80.12.203:3000/stream/webrtc");
                 Log.d(TAG, "Webview loaded successfully... proceeding...");
             }
-        });
-    }
+        }); */
 
     /**
      * Initializes Network connection between client and server.
@@ -155,31 +217,27 @@ public class Client extends AppCompatActivity {
     public void sendPing(View view){
         Log.d(TAG, "Is service bound=" + mServiceBound);
         if(mServiceBound){
-            double ping = mBoundService.getLatency("172.217.22.163", 1);
+            double ping = mBoundService.getLatency(PARENT_IP);
             TextView temp = (TextView) findViewById(R.id.pingbox);
             temp.setText(ping + " ms");
             Log.d(TAG, "Result of ping is: " + ping);
         }
     }
 
-    public void startRecursivePing(View view){
-        startRecursivePing(PARENT_IP, 1000);
-    }
-
     /**
      * Recursive method call which threads ping requests in background
-     * @param ip
-     * @param timeout important to call in seconds
+     * @param
      */
-    public void startRecursivePing(final String ip, final int timeout){
+    public void startRecursivePing(View view){
         //"172.217.22.163" google
-        final int delay = timeout * 1000;
+        Log.d(TAG, "IP is: " + PARENT_IP);
+        final int delay = PARENT_TIMEOUT * 1000;
         if(mServiceBound) {
             Log.d(TAG, "Recursive starting...");
             handler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    double ping = mBoundService.getLatency(ip, timeout);
+                    double ping = mBoundService.getLatency(PARENT_IP);
                     TextView temp = (TextView) findViewById(R.id.pingbox);
                     temp.setText(ping + " ms");
                     Log.d(TAG, "Result of ping is: " + ping);
@@ -201,7 +259,6 @@ public class Client extends AppCompatActivity {
         Log.d(TAG, "In onStart");
         Intent intent = new Intent(this, BoundService.class);
         bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
-        startRecursivePing(PARENT_IP, 1);
     }
 
     /**

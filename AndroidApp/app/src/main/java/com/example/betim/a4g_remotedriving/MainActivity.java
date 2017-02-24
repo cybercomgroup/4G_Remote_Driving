@@ -36,7 +36,7 @@ public class MainActivity extends AppCompatActivity {
 
         storeConInfo(ip, port);
 
-        intent.putExtra("ipaddr",ip);
+        intent.putExtra("ip_addr",ip);
         intent.putExtra("port",port);
 
         startActivity(intent);

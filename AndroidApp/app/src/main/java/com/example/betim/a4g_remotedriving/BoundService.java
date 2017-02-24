@@ -75,13 +75,16 @@ public class BoundService extends Service {
         return exitValue;
     }
 
-    public double getLatency(final String host, final int timeout){
+    /**
+    public double getLatency(String host, int timeout){
+       final String innerHost = host;
+        final int innerTimeout = timeout;
         new Thread(new Runnable() {
             @Override
             public void run() {
-                String pingCommand = "/system/bin/ping -c " + 1 + " -W" + timeout + " " + host;
+                String pingCommand = "/system/bin/ping -c " + 1 + " -W" + innerTimeout + " " + innerHost;
                 String inputLine = "";
-                double avgRtt=0;
+                double avgRtt;
                 try {
                     Process process = Runtime.getRuntime().exec(pingCommand);
                     BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
@@ -98,15 +101,48 @@ public class BoundService extends Service {
                     e.printStackTrace();
                 }
                 String afterEqual = null;
-                afterEqual = inputLine.substring(inputLine.indexOf("="), inputLine.length()).trim();
-                String afterFirstSlash = afterEqual.substring(afterEqual.indexOf('/') + 1, afterEqual.length()).trim();
-                String strAvgRtt = afterFirstSlash.substring(0, afterFirstSlash.indexOf('/'));
-                avgRtt = Double.valueOf(strAvgRtt);
-                Log.d(LOG_TAG, "value of ping: " + avgRtt);
-                postResult(avgRtt);
+                if (inputLine != null) {
+                    afterEqual = inputLine.substring(inputLine.indexOf("="), inputLine.length()).trim();
+                    String afterFirstSlash = afterEqual.substring(afterEqual.indexOf('/') + 1, afterEqual.length()).trim();
+                    String strAvgRtt = afterFirstSlash.substring(0, afterFirstSlash.indexOf('/'));
+                    avgRtt = Double.valueOf(strAvgRtt);
+                    Log.d(LOG_TAG, "value of ping: " + avgRtt);
+                    postResult(avgRtt);
+                }
+                else {
+                    avgRtt = 1;
+                    Log.d(LOG_TAG, "value of ping: " + avgRtt);
+                    postResult(avgRtt);
+                }
             }
         }).start();
         return ping;
+    }*/
+
+    public double getLatency(String host){
+        String pingCommand = "/system/bin/ping -c " + 1 + " " + host;
+        String inputLine = "";
+        double avgRtt = 0;
+        try {
+            Process process = Runtime.getRuntime().exec(pingCommand);
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            inputLine = bufferedReader.readLine();
+            while ((inputLine != null)) {
+                if (inputLine.length() > 0 && inputLine.contains("avg")) {
+                    break;
+                }
+                inputLine = bufferedReader.readLine();
+            }
+        }
+        catch (IOException e){
+            Log.v(LOG_TAG, "getLatency: EXCEPTION");
+            e.printStackTrace();
+        }
+        String afterEqual = inputLine.substring(inputLine.indexOf("="), inputLine.length()).trim();
+        String afterFirstSlash = afterEqual.substring(afterEqual.indexOf('/') + 1, afterEqual.length()).trim();
+        String strAvgRtt = afterFirstSlash.substring(0, afterFirstSlash.indexOf('/'));
+        avgRtt = Double.valueOf(strAvgRtt);
+        return avgRtt;
     }
 
     public void postResult(double result){

@@ -19,20 +19,20 @@
             android:layout_height="wrap_content"
             android:layout_alignParentRight="true"
             android:layout_alignParentTop="true"
-            android:onClick="sendPing"/>
+            android:onClick="sendPing" />
 
-    <Button
-            android:id="@+id/right"
+    <!--<Button
+            android:id="@+id/recursive"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
             android:layout_alignParentLeft="true"
             android:text="recursivePing"
             android:onClick="startRecursivePing"/>
-
+       -->
     <TextView
             android:id="@+id/pingbox"
-            android:text="TextView"
+            android:text=">1000 ms"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_x="60dp"
