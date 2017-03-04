@@ -7,6 +7,7 @@ import android.content.ServiceConnection;
 import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.SystemClock;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -22,6 +23,7 @@ import android.webkit.WebViewClient;
 import android.widget.TextView;
 import android.widget.Toast;
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
@@ -33,20 +35,20 @@ public class Client extends AppCompatActivity {
     private static final String TAG = "Client";
     private String PARENT_IP;
     private String PARENT_PORT;
+    private int PORT;
     //--------Network Variables--------
     private Socket clientSocket;
     private PrintWriter out;
+    private PrintWriter out2;
     private BufferedReader in;
     //--------Service Variables--------
-    BoundService mBoundService;
-    boolean mServiceBound = false;
-    //-------Handler Variables---------
-    Handler handler;
-    Runnable runnable;
+    boolean initialized = false;
     //Ping variables
-    int PARENT_TIMEOUT;
     private WebView mWebRTCWebView;
-
+    private Thread pingThread;
+    private boolean threadLife = false;
+    private TextView pingText;
+    long time;
 
     /**
      * Initializes the Client
@@ -57,6 +59,7 @@ public class Client extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.d(TAG, "in onCreate");
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
         this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_client);
@@ -64,31 +67,29 @@ public class Client extends AppCompatActivity {
         Intent intent = getIntent();
         PARENT_IP = intent.getStringExtra("ip_addr");
         PARENT_PORT = intent.getStringExtra("port");
-        int PORT_INT = Integer.parseInt(PARENT_PORT);
-        //int port = Integer.parseInt(intent.getStringExtra("port"));
-        //initNetWork(ip, port);
-        initNetwork(PARENT_IP, PORT_INT);
-        initStream("http://" + PARENT_IP +"/stream/webrtc", 150);
-        handler = new Handler();
-        PARENT_TIMEOUT = 1;
+        PORT = Integer.parseInt(PARENT_PORT);
+        initStream(100);
+
+        pingText = (TextView)findViewById(R.id.pingbox);
 
         //Initializes joystick
-        /**JoystickView joystick = (JoystickView) findViewById(R.id.joystickView);
+        JoystickView joystick = (JoystickView) findViewById(R.id.joystickView);
         joystick.setOnMoveListener(new JoystickView.OnMoveListener() {
             @Override
             public void onMove(int angle, int strength) {
                 String steerSignal = "("+angle+";"+strength+")";
-               if(out != null) {
-                   out.print(steerSignal);
-                   out.flush();
+               if(out2 != null) {
+                   out2.print(steerSignal);
+                   out2.flush();
                }
 
             }
-        },50);*/
+        },100);
+        initialized = true;
     }
 
-    private void initStream(final String URI, int zoom){
-
+    private void initStream(int zoom){
+        final String streamURI = "http://" + PARENT_IP + ":" + 8080 + "/stream/webrtc";
         mWebRTCWebView = (WebView) findViewById(R.id.stream);
 
         WebSettings settings = mWebRTCWebView.getSettings();
@@ -111,7 +112,8 @@ public class Client extends AppCompatActivity {
         CookieManager cookieManager = CookieManager.getInstance();
         cookieManager.setAcceptThirdPartyCookies(mWebRTCWebView, true);
 
-        mWebRTCWebView.loadUrl("http://95.80.12.203:3000/stream/webrtc");
+
+        mWebRTCWebView.loadUrl(streamURI);
         mWebRTCWebView.setInitialScale(zoom);
 
         mWebRTCWebView.setWebChromeClient(new WebChromeClient(){
@@ -123,7 +125,7 @@ public class Client extends AppCompatActivity {
                     @TargetApi(Build.VERSION_CODES.N)
                     @Override
                     public void run() {
-                        if(request.getOrigin().toString().equals("http://95.80.12.203:3000/stream/webrtc")) {
+                        if(request.getOrigin().toString().equals(streamURI)) {
                             request.grant(request.getResources());
                         } else {
                             request.deny();
@@ -136,29 +138,6 @@ public class Client extends AppCompatActivity {
     }
 
 
-
-    /**
-     * Initializes the stream according to params
-     * @param URI
-     * @param zoom
-
-    private void initStream(final String URI, int zoom){
-        final WebView webView = (WebView)findViewById(R.id.stream);
-        int default_zoom_level=zoom;
-        webView.setInitialScale(default_zoom_level);
-        webView.post(new Runnable()
-        {
-            @Override
-            public void run() {
-                int width = webView.getWidth();
-                int height = webView.getHeight();
-                Log.d(TAG, "Webview initialized, width: " + width + "height: " + height);
-                //http://95.80.12.203:3000/stream/webrtc
-                webView.loadUrl("http://95.80.12.203:3000/stream/webrtc");
-                Log.d(TAG, "Webview loaded successfully... proceeding...");
-            }
-        }); */
-
     /**
      * Initializes Network connection between client and server.
      * @param ip
@@ -170,21 +149,16 @@ public class Client extends AppCompatActivity {
             public void run() {
                 try {
                     Log.d(TAG, "Connecting...");
-
                     clientSocket = new Socket(ip, port);
-                    //clientSocket.setSendBufferSize(1);
-
                     Log.d(TAG, "Connected to server... proceeding...");
-
                     in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+                    out2 = new PrintWriter(clientSocket.getOutputStream(),true);
                     out = new PrintWriter(clientSocket.getOutputStream(), true);
                     Log.d(TAG, "Input/Outputstreams attached... proceeding...");
                 }
                 catch(IllegalArgumentException e) {
                     e.printStackTrace();
-
-                    Log.w("hej", "IllegalARG didn't work: "+ e.getMessage());
-
+                    Log.d(TAG, "IllegalARG didn't work: "+ e.getMessage());
                     runOnUiThread(new Runnable(){
                         public void run() {
                             Toast.makeText(getApplicationContext(), "Invalid port number, should be between 1023 - 65000",Toast.LENGTH_LONG).show();
@@ -201,7 +175,7 @@ public class Client extends AppCompatActivity {
                 catch(Exception e) {
                     e.printStackTrace();
                     //Toast.makeText(Client.this, "hejhej", Toast.LENGTH_SHORT).show();
-                    Log.w("hej", "BETIMGENERAL didn't work: "+ e.getMessage());
+                    Log.d(TAG, "BETIMGENERAL didn't work: "+ e.getMessage());
                 }
             }
         });
@@ -209,45 +183,44 @@ public class Client extends AppCompatActivity {
 
     }
 
-    /**
-     * Contacts Bound Service if ping is requested and updates Clients View depending on termination
-     * result.
-     * @param view
-     */
-    public void sendPing(View view){
-        Log.d(TAG, "Is service bound=" + mServiceBound);
-        if(mServiceBound){
-            double ping = mBoundService.getLatency(PARENT_IP);
-            TextView temp = (TextView) findViewById(R.id.pingbox);
-            temp.setText(ping + " ms");
-            Log.d(TAG, "Result of ping is: " + ping);
-        }
-    }
 
     /**
      * Recursive method call which threads ping requests in background
      * @param
      */
-    public void startRecursivePing(View view){
-        //"172.217.22.163" google
+    public void startPing(){
         Log.d(TAG, "IP is: " + PARENT_IP);
-        final int delay = PARENT_TIMEOUT * 1000;
-        if(mServiceBound) {
-            Log.d(TAG, "Recursive starting...");
-            handler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    double ping = mBoundService.getLatency(PARENT_IP);
-                    TextView temp = (TextView) findViewById(R.id.pingbox);
-                    temp.setText(ping + " ms");
-                    Log.d(TAG, "Result of ping is: " + ping);
-                    handler.postDelayed(this, delay);
+        pingThread = new Thread(new Runnable() {
+        @Override
+            public void run() {
+            while (!Thread.currentThread().isInterrupted()) {
+                SystemClock.sleep(1000);
+                if (out != null) {
+                    out.print("ping:" + System.currentTimeMillis());
+                    out.flush();
                 }
-            }, delay);
+                try {
+                    String message = in.readLine();
+                    Log.d(TAG, "Time from server: " + in);
+
+                    if (message != null) {
+                        time = System.currentTimeMillis() - Long.parseLong(message);
+                        Log.d(TAG, "Result of ping is: " + time);
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                pingText.setText(String.valueOf(time));
+                            }
+                        });
+                    }
+                } catch (IOException e) {
+                    Log.d(TAG, "Error error error");
+                    e.printStackTrace();
+                }
+            }
         }
-        else
-            Log.d(TAG,"Recursive failed");
-            return;
+        });
+        pingThread.start();
     }
 
     /**
@@ -256,9 +229,7 @@ public class Client extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        Log.d(TAG, "In onStart");
-        Intent intent = new Intent(this, BoundService.class);
-        bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
+        Log.d(TAG, "onStart");
     }
 
     /**
@@ -267,37 +238,32 @@ public class Client extends AppCompatActivity {
     @Override
     protected void onStop() {
         super.onStop();
-        if (mServiceBound) {
-            Log.d(TAG, "In onStop");
-            unbindService(mServiceConnection);
-            mServiceBound = false;
+        Log.d(TAG, "onStop");
+        try {
+            in.close();
+            out.close();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        handler.removeCallbacksAndMessages(runnable);
     }
 
     @Override
     protected void onPause(){
         super.onPause();
-        //handler.removeCallbacks(runnable);
+        Log.d(TAG, "in onPause");
+        out.print("quit");
+        out.flush();
+        if(pingThread.isAlive()) {
+            pingThread.interrupt();
+        }
     }
 
-    /**
-     * Private helper for service Connection of BoundServices, returns the Ibinder of BoundService.java
-     */
-    private ServiceConnection mServiceConnection = new ServiceConnection() {
+    @Override
+    protected void onResume(){
+        super.onResume();
+        Log.d(TAG, "in onResume");
+        initNetwork(PARENT_IP, PORT);
+        startPing();
+    }
 
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            Log.d(TAG, "in onServiceDisconnected");
-            mServiceBound = false;
-        }
-
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            Log.d(TAG, "In onServiceConnected");
-            BoundService.MyBinder myBinder = (BoundService.MyBinder) service;
-            mBoundService = myBinder.getService();
-            mServiceBound = true;
-        }
-    };
 }

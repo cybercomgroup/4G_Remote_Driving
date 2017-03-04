@@ -12,24 +12,15 @@
             android:layout_height="match_parent" >
         </WebView>
 
-        <Button
-            android:id="@+id/sendPing"
-            android:text="Ping"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentRight="true"
-            android:layout_alignParentTop="true"
-            android:onClick="sendPing" />
-
     <!--<Button
-            android:id="@+id/recursive"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
-            android:layout_alignParentLeft="true"
-            android:text="recursivePing"
-            android:onClick="startRecursivePing"/>
-       -->
+        android:id="@+id/recursive"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:text="recursivePing"
+        android:onClick="startRecursivePing"/>
+   -->
     <TextView
             android:id="@+id/pingbox"
             android:text=">1000 ms"
@@ -57,11 +48,4 @@
         android:layout_alignParentRight="true"
         />
 
-    <TextView
-        android:id="@+id/coord"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentTop="true"
-         />
 </RelativeLayout>

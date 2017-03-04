@@ -13,6 +13,7 @@ import android.util.Log;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
 
 public class BoundService extends Service {
     private static String LOG_TAG = "BoundService";
@@ -52,41 +53,42 @@ public class BoundService extends Service {
         Log.v(LOG_TAG, "in onDestroy");
     }
 
-    public int pingHost(final String host) throws IOException, InterruptedException {
-        final String pingCommand = "/system/bin/ping -c " + 1 + " " + host;
-       new Thread(new Runnable() {
-           @Override
-           public void run() {
-               Runtime runtime = Runtime.getRuntime();
-               Process process = null;
-               try {
-                   process = runtime.exec(pingCommand);
-               } catch (IOException e) {
-                   e.printStackTrace();
-               }
-               try {
-                   process.waitFor();
-               } catch (InterruptedException e) {
-                   e.printStackTrace();
-               }
-               postResult(process.exitValue());
-           }
-       }).start();
-        return exitValue;
+    public long sendMessage(PrintWriter out, BufferedReader in) {
+        long timeDirreference = 0;
+        Log.d(LOG_TAG, "Entering threaded service, sending time to server...");
+        if (out != null) {
+            out.print("ping:" + System.currentTimeMillis());
+            out.flush();
+        }
+        try {
+            String message = in.readLine();
+            Log.d(LOG_TAG, "Time from server: " + in);
+            timeDirreference = System.currentTimeMillis() - Long.parseLong(message);
+            Log.d(LOG_TAG, "Finished sending data, exiting service...");
+        } catch (IOException e) {
+            Log.d(LOG_TAG, "Error error error");
+            e.printStackTrace();
+        }
+        return timeDirreference;
     }
 
-    /**
+        /**
     public double getLatency(String host, int timeout){
-       final String innerHost = host;
+        final String innerHost = host;
         final int innerTimeout = timeout;
+        Log.d(LOG_TAG, "Host being pinged: " + host);
+        Log.d(LOG_TAG, "Innerhost = " + innerHost + " timeout: " + timeout + " innertimeout= " + innerTimeout);
         new Thread(new Runnable() {
             @Override
             public void run() {
-                String pingCommand = "/system/bin/ping -c " + 1 + " -W" + innerTimeout + " " + innerHost;
+                String pingCommand = "/system/bin/ping -c " + 1 + " " + innerHost;
                 String inputLine = "";
                 double avgRtt;
                 try {
                     Process process = Runtime.getRuntime().exec(pingCommand);
+                    process.waitFor();
+                    int exit = process.exitValue();
+                    Log.d(LOG_TAG, "exitValue: " + exit);
                     BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
                     inputLine = bufferedReader.readLine();
                     while ((inputLine != null)) {
@@ -99,10 +101,11 @@ public class BoundService extends Service {
                 catch (IOException e){
                     Log.v(LOG_TAG, "getLatency: EXCEPTION");
                     e.printStackTrace();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
-                String afterEqual = null;
                 if (inputLine != null) {
-                    afterEqual = inputLine.substring(inputLine.indexOf("="), inputLine.length()).trim();
+                    String afterEqual = inputLine.substring(inputLine.indexOf("="), inputLine.length()).trim();
                     String afterFirstSlash = afterEqual.substring(afterEqual.indexOf('/') + 1, afterEqual.length()).trim();
                     String strAvgRtt = afterFirstSlash.substring(0, afterFirstSlash.indexOf('/'));
                     avgRtt = Double.valueOf(strAvgRtt);
@@ -118,39 +121,6 @@ public class BoundService extends Service {
         }).start();
         return ping;
     }*/
-
-    public double getLatency(String host){
-        String pingCommand = "/system/bin/ping -c " + 1 + " " + host;
-        String inputLine = "";
-        double avgRtt = 0;
-        try {
-            Process process = Runtime.getRuntime().exec(pingCommand);
-            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-            inputLine = bufferedReader.readLine();
-            while ((inputLine != null)) {
-                if (inputLine.length() > 0 && inputLine.contains("avg")) {
-                    break;
-                }
-                inputLine = bufferedReader.readLine();
-            }
-        }
-        catch (IOException e){
-            Log.v(LOG_TAG, "getLatency: EXCEPTION");
-            e.printStackTrace();
-        }
-        String afterEqual = inputLine.substring(inputLine.indexOf("="), inputLine.length()).trim();
-        String afterFirstSlash = afterEqual.substring(afterEqual.indexOf('/') + 1, afterEqual.length()).trim();
-        String strAvgRtt = afterFirstSlash.substring(0, afterFirstSlash.indexOf('/'));
-        avgRtt = Double.valueOf(strAvgRtt);
-        return avgRtt;
-    }
-
-    public void postResult(double result){
-        ping = result;
-    }
-    public void postResult(int result){
-        exitValue = result;
-    }
 
     public class MyBinder extends Binder {
         BoundService getService() {
