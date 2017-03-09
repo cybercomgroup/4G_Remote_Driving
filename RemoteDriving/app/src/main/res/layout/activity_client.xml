@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_client"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="abtv.remotedriving.Client">
+
+    <WebView
+        android:id="@+id/stream"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" >
+    </WebView>
+
+    <TextView
+        android:id="@+id/pingbox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="5dp"
+        android:layout_x="60dp"
+        android:layout_y="48dp"
+        android:text="Ping: ?? ms"
+        android:textColor="@android:color/holo_red_dark"
+        android:textSize="18sp" />
+
+    <io.github.controlwear.virtual.joystick.android.JoystickView
+        android:id="@+id/joystickView"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        app:JV_borderColor="@android:color/holo_red_dark"
+        app:JV_buttonColor="@android:color/holo_red_dark" />
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="24sp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentRight="true" />
+
+    <Button
+        android:id="@+id/hangUpButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:layout_marginBottom="5dp"
+        android:layout_marginLeft="95dp"
+        android:text="Hang Up" />
+
+    <Button
+        android:id="@+id/callButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:layout_margin="5dp"
+        android:text="Call" />
+
+</RelativeLayout>
