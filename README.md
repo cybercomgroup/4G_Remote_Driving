@@ -1,4 +1,4 @@
-# 4G_Remote_Driving
+# 4G Remote Driving
 
 Albin Hellqvist         - albhel@student.chalmers.se
 
